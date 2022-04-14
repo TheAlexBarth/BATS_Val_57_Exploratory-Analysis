@@ -1,0 +1,64 @@
+---
+title: Copepod size as a function of latitude
+---
+
+Finally, let's test the notion that body size will change as a function of latitude. For this, we're only going to look in the top 500m since the deeper regions will likely not have a huge thermal gradient since they're above the thermocline
+
+```{r}
+rm(list = ls())
+library(EcotaxaTools)
+library(ggplot2)
+library(tibble)
+
+uvp_dat <- ecopart_import("~/BV_transect_export") #load in initial ecopart object
+
+# we need to trim out the hs casts
+# One way to do that would be to hard-code indices for those but that's not reliable
+#So I'm using regex
+
+#get index of hs data for both par and zoo files
+hs_index_par <- grep("hs",names(uvp_dat$par_files))
+hs_index_zoo <- grep('hs', names(uvp_dat$zoo_files))
+
+uvp_dat$par_files <- uvp_dat$par_files[-hs_index_par]
+uvp_dat$zoo_files <- uvp_dat$zoo_files[-hs_index_zoo]
+```
+
+```{r}
+# let's trim out all not copepods
+
+rename <- c('living','not-living', 'Copepoda')
+uvp_dat <- uvp_dat %>% 
+  add_zoo(names_to, 'name', rename, suppress_print = T)
+
+```
+
+Now we can actually do this analysis fairly quickly by applying a few functions
+
+```{r}
+get_avg_size <- function(df, taxa, max_d) {
+  tdf <- df[df$name == taxa &
+            df$depth_including_offset < max_d,]
+  BV <- ellps_vol(tdf)
+  return(mean(BV))
+}
+
+cope_size <- lapply(uvp_dat$zoo_files, get_avg_size,
+                    'Copepoda',500)
+cope_size <- tibble(profile_id = names(cope_size),
+                    BV = unlist(cope_size))
+
+cope_size <- as_tibble(merge(cope_size,
+                       data.frame(profile_id = uvp_dat$meta$profileid,
+                                  lat = uvp_dat$meta$latitude)))
+```
+
+```{r}
+ggplot(cope_size, aes(x = lat, y = BV))+
+  geom_point(size = 1)+
+  geom_line(stat = 'smooth', method = 'gam',
+            alpha = .6, span = 1, size = 1)+
+  coord_flip()+
+  labs(x = 'Latitude', y = 'Copepod Body Volume [mm^3]')+
+  theme_bw()
+```

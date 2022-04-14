@@ -1,0 +1,13 @@
+---
+title: "Exploratory Analysis on BV57"
+---
+
+Welcome to this exploratory analysis. I looked at the effect of just latitude on different zooplankton metrics:
+
+There are a three main analyses:
+
+-   [Integrated ]('./bv57_exploratory_taxa-diversity.html')[Density]('./bv57_exploratory_density.html')
+
+-   [Diversity]('./bv57_exploratory_density.html')
+
+-   [Copepod Body Size]('./bv57_exploratory_copepod-body-vol.html)

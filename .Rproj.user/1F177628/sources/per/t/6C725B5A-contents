@@ -1,0 +1,24 @@
+project:
+  type: website
+
+website:
+  title: "BATS_Val_57_Exploratory-Analysis"
+  navbar:
+    background: primary
+    left:
+      - href: index.qmd
+        text: Home
+      - href: bv57_exploratory_taxa-diversity.qmd
+        text: Diversity Analysis
+      - href: bv57_exploratory_density.qmd
+        text: Integrated Abundance Analysis
+      - href: bv57_exploratory_copepod-body-vol.qmd
+        text: Copepod Body Size
+
+format:
+  html:
+    theme: cosmo
+    css: styles.css
+
+editor: visual
+

@@ -1,0 +1,16 @@
+{
+  "hash": "3dd900f37a616c212300da12f10d35bc",
+  "result": {
+    "markdown": "---\ntitle: Copepod size as a function of latitude\n---\n\nFinally, let's test the notion that body size will change as a function of latitude. For this, we're only going to look in the top 500m since the deeper regions will likely not have a huge thermal gradient since they're above the thermocline\n\n::: {.cell}\n\n```{.r .cell-code}\nrm(list = ls())\nlibrary(EcotaxaTools)\nlibrary(ggplot2)\nlibrary(tibble)\n```\n\n::: {.cell-output-stderr}\n```\nWarning: package 'tibble' was built under R version 4.1.2\n```\n:::\n\n```{.r .cell-code}\nuvp_dat <- ecopart_import(\"~/BV_transect_export\") #load in initial ecopart object\n\n# we need to trim out the hs casts\n# One way to do that would be to hard-code indices for those but that's not reliable\n#So I'm using regex\n\n#get index of hs data for both par and zoo files\nhs_index_par <- grep(\"hs\",names(uvp_dat$par_files))\nhs_index_zoo <- grep('hs', names(uvp_dat$zoo_files))\n\nuvp_dat$par_files <- uvp_dat$par_files[-hs_index_par]\nuvp_dat$zoo_files <- uvp_dat$zoo_files[-hs_index_zoo]\n```\n:::\n\n::: {.cell}\n\n```{.r .cell-code}\n# let's trim out all not copepods\n\nrename <- c('living','not-living', 'Copepoda')\nuvp_dat <- uvp_dat %>% \n  add_zoo(names_to, 'name', rename, suppress_print = T)\n```\n:::\n\nNow we can actually do this analysis fairly quickly by applying a few functions\n\n::: {.cell}\n\n```{.r .cell-code}\nget_avg_size <- function(df, taxa, max_d) {\n  tdf <- df[df$name == taxa &\n            df$depth_including_offset < max_d,]\n  BV <- ellps_vol(tdf)\n  return(mean(BV))\n}\n\ncope_size <- lapply(uvp_dat$zoo_files, get_avg_size,\n                    'Copepoda',500)\ncope_size <- tibble(profile_id = names(cope_size),\n                    BV = unlist(cope_size))\n\ncope_size <- as_tibble(merge(cope_size,\n                       data.frame(profile_id = uvp_dat$meta$profileid,\n                                  lat = uvp_dat$meta$latitude)))\n```\n:::\n\n::: {.cell}\n\n```{.r .cell-code}\nggplot(cope_size, aes(x = lat, y = BV))+\n  geom_point(size = 1)+\n  geom_line(stat = 'smooth', method = 'gam',\n            alpha = .6, span = 1, size = 1)+\n  coord_flip()+\n  labs(x = 'Latitude', y = 'Copepod Body Volume [mm^3]')+\n  theme_bw()\n```\n\n::: {.cell-output-stderr}\n```\n`geom_smooth()` using formula 'y ~ s(x, bs = \"cs\")'\n```\n:::\n\n::: {.cell-output-display}\n![](bv57_exploratory_copepod-body-vol_files/figure-html/unnamed-chunk-8-1.png){width=672}\n:::\n:::",
+    "supporting": [
+      "bv57_exploratory_copepod-body-vol_files"
+    ],
+    "filters": [
+      "rmarkdown/pagebreak.lua"
+    ],
+    "includes": [],
+    "engineDependencies": {},
+    "preserve": {},
+    "postProcess": null
+  }
+}
